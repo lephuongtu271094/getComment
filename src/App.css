@@ -1,0 +1,11 @@
+.App {
+  margin: 50px;
+}
+.table_style {
+  width: 85%;
+}
+
+.btn-primary{
+  float: right;
+  width: 200px;
+}
