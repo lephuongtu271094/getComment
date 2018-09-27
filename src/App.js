@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import './App.css';
 import moment from 'moment';
 import axios from 'axios';
-
+import _ from 'lodash';
 const regexCheckUrl = /^(?:http(s)?:\/\/)?[\w.-]+(?:\.[\w\.-]+)+[\w\-\._~:/?#[\]@!\$&'\(\)\*\+,;=.]+$/gm;
 const url = "https://graph.facebook.com/v3.1/"
 class App extends Component {
@@ -31,6 +31,11 @@ class App extends Component {
         // {
         //   "created_time": "2018-09-22T05:10:20+0000",
         //   "message": "dg adsf á d á á á á",
+        //   "id": "471419796680554_471433973345803"
+        // },
+        // {
+        //   "created_time": "2018-09-22T05:10:20+0000",
+        //   "message": "tu",
         //   "id": "471419796680554_471433973345803"
         // }
       ],
@@ -67,11 +72,13 @@ class App extends Component {
     const urlVideos = this.state.urlVideos;
     const token = this.state.token;
     const self = this;
+    
     if (urlVideos.match(regexCheckUrl) && token.length !== 0) {
       let pathArray = urlVideos.split('/')[5];
+      
       //&limit=4000
       //https://developers.facebook.com/tools/explorer/
-      let pathGetComment = `${url}${pathArray}/comments?fields=created_time,message&filter=stream&summary=true&access_token=${token}`
+      let pathGetComment = `${url}${pathArray}/comments?filter=stream&summary=true&limit=4000&access_token=${token}`
       axios.get(pathGetComment,
         { crossdomain: true }
         )
@@ -110,6 +117,7 @@ class App extends Component {
             <tr>
               <th>Stt</th>
               <th>Time</th>
+              <th>Tên</th>
               <th>Comment</th>
             </tr>
           </thead>
@@ -119,6 +127,7 @@ class App extends Component {
                 return <tr key={index}>
                   <td>{index}</td>
                   <td>{moment(element.created_time).format('LT')}</td>
+                  <td>{element.from ? element.from.name : ''}</td>
                   <td className="table_style">{element.message}</td>
                 </tr>
               })
@@ -135,8 +144,9 @@ class App extends Component {
     if (textSearch) {
       const regex = new RegExp(textSearch, 'ig');
       let dataFilter = data.filter(({ message }) => message.match(regex));
-      newData = dataFilter;
-      totalComment = dataFilter.length;
+      let dataNameFilter = data.filter(dataFilter => dataFilter.from ? dataFilter.from.name.match(regex) : '');
+      newData = _.union(dataFilter, dataNameFilter);
+      totalComment = newData.length;
     } else {
       newData = data
     }
@@ -146,7 +156,9 @@ class App extends Component {
         <table className="table">
           <thead>
             <tr>
+              <th>Stt</th>
               <th>Time</th>
+              <th>Tên</th>
               <th>Comment</th>
             </tr>
           </thead>
@@ -154,7 +166,9 @@ class App extends Component {
             {
               newData.map((element, index) => {
                 return <tr key={index}>
+                  <td>{index}</td>
                   <td>{moment(element.created_time).format('LT')}</td>
+                  <td>{element.from ? element.from.name : ''}</td>
                   <td className="table_style">{element.message}</td>
                 </tr>
               })
